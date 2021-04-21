@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/sahilm/fuzzy"
 )
 
 // Things to implement
@@ -31,13 +33,43 @@ func cmdClone(args []string) {
 	fmt.Printf("%s\n", output)
 	if err != nil {
 		fmt.Printf("Failed to clone: %v", err)
-		// os.Exit(0)
+		os.Exit(1)
 	}
 }
 
 func cmdCd(args []string) {
-	repoBase := "github.com/" + args[0]
+	bestProj, found := fuzzyFindProjectBase(args[0])
+	if !found {
+		os.Exit(1)
+	}
+
 	userHomeDir, _ := os.UserHomeDir()
-	destFolder := userHomeDir + "/src/" + repoBase
+	destFolder := userHomeDir + "/src/github.com/" + bestProj
 	fmt.Println(destFolder)
+}
+
+func fuzzyFindProjectBase(projName string) (bestDir string, found bool) {
+	userHomeDir, _ := os.UserHomeDir()
+	baseDir := userHomeDir + "/src/github.com/"
+	dirEntries, err := os.ReadDir(baseDir)
+	var allDirs []string
+	if err != nil {
+		return "", false
+	}
+
+	for _, dirEntry := range dirEntries {
+		if !dirEntry.IsDir() {
+			continue
+		}
+		subDirEntries, _ := os.ReadDir(baseDir + dirEntry.Name())
+		for _, subDirEntry := range subDirEntries {
+			allDirs = append(allDirs, dirEntry.Name()+"/"+subDirEntry.Name())
+		}
+	}
+
+	results := fuzzy.Find(projName, allDirs)
+	if results.Len() < 1 {
+		return "", false
+	}
+	return results[0].Str, true
 }

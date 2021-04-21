@@ -5,8 +5,8 @@
 # Shell's binary can only be changed by the shell's function.
 # * https://stackoverflow.com/q/255414/84143
 # * https://stackoverflow.com/q/53984853/84143
-
-# TODO: validation
+#
+# This function acts as a shim (proxy) to the actual dev binary
 function dev -a cmd
   set cmdArgv $argv[2..-1]
   set devBinary (which dev)
@@ -14,7 +14,11 @@ function dev -a cmd
   switch $cmd
     case 'cd'
       set newDir ($devBinary cd $cmdArgv)
-      cd $newDir
+      if test $status = 0
+        cd $newDir
+      else
+        return $status
+      end
     case '*'
       $devBinary $cmd $cmdArgv
   end
