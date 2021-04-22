@@ -8,18 +8,24 @@ import (
 	"github.com/sahilm/fuzzy"
 )
 
-// Things to implement
-// dev clone project_name
-// dev cd
 func main() {
+	validateArgs()
 	cmd := os.Args[1]
 	cmdArgs := os.Args[2:]
-	if cmd == "clone" {
+	switch cmd {
+	case "clone":
 		cmdClone(cmdArgs)
-	} else if cmd == "cd" {
+	case "cd":
 		cmdCd(cmdArgs)
-	} else if cmd == "echo" {
+	case "echo":
 		fmt.Printf("Dev binary echoing: %v\n", cmdArgs)
+	}
+}
+
+func validateArgs() {
+	if len(os.Args) < 3 {
+		fmt.Println("dev: missing arguments.\nUsage: dev <command> <arguments>")
+		os.Exit(1)
 	}
 }
 
